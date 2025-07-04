@@ -1,12 +1,11 @@
-
-
 // server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 
 const app = express();
-
+const Video = require('./models/Video'); // Import the Video model
+const User = require('./models/User'); // Import the User model
 // Middlewares
 app.use(cors());
 app.use(express.json());
@@ -18,28 +17,25 @@ mongoose.connect('mongodb://localhost:27017/youtube-clone', {
 }).then(() => console.log("✅ MongoDB connected"))
   .catch(err => console.error("❌ MongoDB error:", err));
 
-// Mongoose Schema
-const Video = mongoose.model("Video", new mongoose.Schema({
-  title: String,
-  views: String,
-  thumbnail: String,
-  videoUrl: String, // הוספנו את זה
-  description: String // ✅ חדש
-}));
-
 const authRoutes = require('./routes/auth');
 app.use('/auth', authRoutes);
 
 
 // GET all videos
 app.get('/videos', async (req, res) => {
-  const videos = await Video.find();
+  const videos = await Video.find().populate('userId', 'username'); // Populate userId with username
+  if (!videos) return res.status(404).json({ message: "No videos found" });
   res.json(videos);
 });
 
-// POST new video
-app.post('/videos', async (req, res) => {
-  const video = new Video(req.body);
+const verifyToken = require('./middlewares/verifyToken');
+
+// POST new video – רק למשתמשים מחוברים
+app.post('/videos', verifyToken, async (req, res) => {
+  const { title, videoUrl, thumbnail, description } = req.body;
+  const userId = req.user.userId; // נשלף מהטוקן המאומת
+
+  const video = new Video({ title, videoUrl, thumbnail, description, views: "0", userId });
   await video.save();
   res.status(201).json(video);
 });
