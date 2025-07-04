@@ -1,3 +1,5 @@
+
+
 // server.js
 const express = require('express');
 const mongoose = require('mongoose');
@@ -24,6 +26,9 @@ const Video = mongoose.model("Video", new mongoose.Schema({
   videoUrl: String, // הוספנו את זה
   description: String // ✅ חדש
 }));
+
+const authRoutes = require('./routes/auth');
+app.use('/auth', authRoutes);
 
 
 // GET all videos
