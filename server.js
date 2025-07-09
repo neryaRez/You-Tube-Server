@@ -28,9 +28,23 @@ app.get('/videos', async (req, res) => {
   res.json(videos);
 });
 
-const verifyToken = require('./middlewares/verifyToken');
+
+// Get all users
+app.get('/users', async (req, res) => {
+  try {
+    const users = await User.find({}, '-password'); // Exclude password field
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching users", error: err.message });
+  }
+});
+
+const commentRoutes = require('./routes/comments');
+app.use('/comments', commentRoutes);
 
 // POST new video – רק למשתמשים מחוברים
+
+const verifyToken = require('./middlewares/verifyToken');
 app.post('/videos', verifyToken, async (req, res) => {
   const { title, videoUrl, thumbnail, description } = req.body;
   const userId = req.user.userId; // נשלף מהטוקן המאומת
@@ -40,7 +54,7 @@ app.post('/videos', verifyToken, async (req, res) => {
   res.status(201).json(video);
 });
 
-
+//DELETE video by ID – רק למשתמשים מחוברים
 app.delete('/videos/:id', async (req, res) => {
     try {
       const { id } = req.params;
@@ -51,6 +65,20 @@ app.delete('/videos/:id', async (req, res) => {
       res.json({ message: "Video deleted" });
     } catch (err) {
       res.status(500).json({ message: "Error deleting video", error: err.message });
+    }
+  });
+
+  //Delete user by Id
+  app.delete('/users/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const result = await User.findByIdAndDelete(id);
+      if (!result) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      res.json({ message: "User deleted" });
+    } catch (err) {
+      res.status(500).json({ message: "Error deleting user", error: err.message });
     }
   });
   
