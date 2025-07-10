@@ -6,10 +6,20 @@ const cors = require('cors');
 const app = express();
 const Video = require('./models/Video'); // Import the Video model
 const User = require('./models/User'); // Import the User model
-// Middlewares
-app.use(cors());
-app.use(express.json());
+const commentsRoutes = require('./routes/Comments');
 
+
+// Middlewares
+// ✅ cors חייב להיות ראשון
+const corsOptions = {
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use('/comments', commentsRoutes);
 // DB
 mongoose.connect('mongodb://localhost:27017/youtube-clone', {
   useNewUrlParser: true,
@@ -39,8 +49,17 @@ app.get('/users', async (req, res) => {
   }
 });
 
-const commentRoutes = require('./routes/comments');
-app.use('/comments', commentRoutes);
+//Get all comments by video ID
+// app.get('/videos/:id/comments', async (req, res) => {
+//   const { id } = req.params;
+//   try {
+//     const video = await Video.findById(id).populate('comments');
+//     if (!video) return res.status(404).json({ message: "Video not found" });
+//     res.json(video.comments);
+//   } catch (err) {
+//     res.status(500).json({ message: "Error fetching comments", error: err.message });
+//   }
+// }); 
 
 // POST new video – רק למשתמשים מחוברים
 

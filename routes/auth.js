@@ -5,8 +5,8 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
-const SECRET = "secret-key-change-this"; // תחליף למשהו סודי במציאות
-
+require('dotenv').config();
+const SECRET = process.env.JWT_SECRET;
 // REGISTER
 router.post('/register', async (req, res) => {
   try {
